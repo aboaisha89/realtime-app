@@ -2,15 +2,32 @@
 <html>
 <body>
 <h2>صفحة الإدارة</h2>
-<input id="text" placeholder="اكتب شيئاً">
-<button onclick="send()">إرسال</button>
+
+<input id="number" placeholder="رقم الطلب">
+<select id="logo">
+  <option value="logos/talabat.png">Talabat</option>
+  <option value="logos/keeta.png">Keeta</option>
+  <option value="logos/rafeq.png">Rafeq</option>
+</select>
+<label>
+  Highlight <input type="checkbox" id="highlight">
+</label>
+
+<button onclick="sendOrder()">إرسال</button>
 
 <script>
 const ws = new WebSocket(location.origin.replace(/^http/, "ws"));
 
-function send() {
-    const msg = document.getElementById("text").value;
-    if (msg) ws.send(msg);
+function sendOrder() {
+    const number = document.getElementById("number").value;
+    const logo = document.getElementById("logo").value;
+    const highlight = document.getElementById("highlight").checked ? 1 : 0;
+
+    if(number && logo){
+        ws.send(JSON.stringify({number, logo, highlight}));
+        document.getElementById("number").value = "";
+        document.getElementById("highlight").checked = false;
+    }
 }
 </script>
 </body>
