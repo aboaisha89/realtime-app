@@ -1,16 +1,113 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Ready Orders Display</title>
+<link rel="icon" type="image/png" href="logos/logo.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* انسخ CSS كامل من الكود الذي أرسلته */
+</style>
+</head>
 <body>
-<h2>صفحة العرض</h2>
-<div id="output"></div>
+
+<h1>Ready Orders</h1>
+
+<audio id="notify">
+    <source src="mixkit-positive-notification-951.wav" type="audio/wav">
+</audio>
+
+<div id="fullscreen">
+    <img id="fullLogo">
+    <div id="fullNumber"></div>
+</div>
+
+<div id="cards" class="grid"></div>
+
+<div id="ticker">
+    <div id="currentTime"></div>
+    <div id="tickerText">
+        <span>Please check the last 4 digits of your order number. If not displayed yet, please wait. Thank you</span>
+    </div>
+</div>
 
 <script>
 const ws = new WebSocket(location.origin.replace(/^http/, "ws"));
+let inFullscreen = false;
+let orders = [];
 
+// ألوان حسب اللوجو
+function getColorForLogo(logo) {
+    if (!logo) return "#444";
+    if (logo.includes("talabat")) return "#ff6a00";
+    if (logo.includes("keeta")) return "#ffe200";
+    if (logo.includes("rafeq")) return "#7b2cbf";
+    if (logo.includes("snoono")) return "#d00000";
+    if (logo.includes("deliveroo")) return "#00d1b2";
+    if (logo.includes("smakit")) return "#1e90ff";
+    return "#444";
+}
+
+function renderOrders() {
+    const grid = document.getElementById("cards");
+    grid.innerHTML = "";
+
+    orders.forEach(order => {
+        const bg = getColorForLogo(order.logo);
+        grid.innerHTML += `
+            <div class="card" style="background:${bg}">
+                <img src="${order.logo}">
+                <span>${order.number}</span>
+            </div>
+        `;
+    });
+
+    const highlight = orders.find(o => o.highlight == 1);
+    if (highlight && !inFullscreen) showFullscreen(highlight);
+}
+
+function showFullscreen(order) {
+    inFullscreen = true;
+    document.getElementById("fullLogo").src = order.logo;
+    document.getElementById("fullNumber").textContent = order.number;
+
+    const box = document.getElementById("fullscreen");
+    box.style.visibility = "visible";
+    box.style.opacity = "1";
+
+    document.getElementById("notify").play();
+
+    setTimeout(() => {
+        box.style.opacity = "0";
+        setTimeout(() => box.style.visibility = "hidden", 300);
+        order.highlight = 0; // إزالة التمييز محلياً
+        inFullscreen = false;
+    }, 4000);
+}
+
+// WebSocket استقبال البيانات
 ws.onmessage = (event) => {
-    document.getElementById("output").innerHTML +=
-        "<p>" + event.data + "</p>";
-};
+    try {
+        orders = JSON.parse(event.data);
+        renderOrders();
+    } catch(e) {
+        console.error(e);
+    }
+}
+
+// تحديث الوقت في الشريط
+function updateTickerTime() {
+    const now = new Date();
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2,'0');
+    const seconds = now.getSeconds().toString().padStart(2,'0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
+}
+
+setInterval(updateTickerTime, 1000);
+updateTickerTime();
 </script>
 </body>
 </html>
