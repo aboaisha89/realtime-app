@@ -5,8 +5,29 @@
 <title>Ready Orders Display</title>
 <link rel="icon" type="image/png" href="logos/logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <style>
-/* انسخ CSS كامل من الكود الذي أرسلته */
+/* انسخ CSS كما هو من الكود الذي أرسلته */
+body { font-family: Arial, sans-serif; text-align: center; margin: 0; background: #111; color: #fff; }
+h1 { font-size: 2rem; margin: 20px 0; }
+.grid { display: grid; gap: 15px; width: 95%; margin: auto; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.card { border-radius: 12px; font-size: 2.5rem; color: white; font-weight: bold; display: flex; align-items: center; justify-content: flex-start; gap: 12px; }
+.card img { height: 55px; width: auto; border-radius: 8px; box-shadow: 4px 0px 8px rgba(0, 0, 0, 0.66); }
+#fullscreen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; color: red; font-size: 10rem; display: flex; flex-direction: row; gap: 25px; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.4s; z-index: 99999; margin: auto; }
+#fullscreen img { height: 180px; border-radius: 8px; }
+#fullscreen #fullNumber { font-weight: bold; }
+#ticker { position: fixed; bottom: 0; width: 100%; background: #e63946; color: white; font-size: 1.4rem; padding: 12px 0; overflow: hidden; white-space: nowrap; z-index: 9999; display: flex; align-items: center; }
+#currentTime { flex-shrink: 0; margin-left: 10px; font-weight: bold; }
+#tickerText { display: inline-block; overflow: hidden; white-space: nowrap; margin-left: 20px; flex-grow: 1; }
+#tickerText span { display: inline-block; padding-left: 100%; animation: scroll 12s linear infinite; font-weight: bold; }
+@keyframes scroll { from { transform: translateX(0%); } to { transform: translateX(-100%); } }
+@media (max-width: 600px) {
+    h1 { font-size: 1.5rem; }
+    .card { font-size: 2rem; }
+    #fullscreen { font-size: 3rem; flex-direction: column; }
+    #fullscreen img { height: 80px; }
+    #ticker { font-size: 1.1rem; padding: 10px 0; }
+}
 </style>
 </head>
 <body>
@@ -32,11 +53,10 @@
 </div>
 
 <script>
-const ws = new WebSocket(location.origin.replace(/^http/, "ws"));
 let inFullscreen = false;
 let orders = [];
 
-// ألوان حسب اللوجو
+// ألوان الشركات حسب اللوجو
 function getColorForLogo(logo) {
     if (!logo) return "#444";
     if (logo.includes("talabat")) return "#ff6a00";
@@ -48,6 +68,7 @@ function getColorForLogo(logo) {
     return "#444";
 }
 
+// عرض الطلبات
 function renderOrders() {
     const grid = document.getElementById("cards");
     grid.innerHTML = "";
@@ -80,22 +101,21 @@ function showFullscreen(order) {
     setTimeout(() => {
         box.style.opacity = "0";
         setTimeout(() => box.style.visibility = "hidden", 300);
-        order.highlight = 0; // إزالة التمييز محلياً
+        order.highlight = 0;
         inFullscreen = false;
     }, 4000);
 }
 
-// WebSocket استقبال البيانات
-ws.onmessage = (event) => {
+// WebSocket
+const ws = new WebSocket(location.origin.replace(/^http/, "ws"));
+ws.onmessage = e => {
     try {
-        orders = JSON.parse(event.data);
+        orders = JSON.parse(e.data);
         renderOrders();
-    } catch(e) {
-        console.error(e);
-    }
+    } catch(err) { console.error(err); }
 }
 
-// تحديث الوقت في الشريط
+// تحديث الوقت
 function updateTickerTime() {
     const now = new Date();
     let hours = now.getHours();
@@ -105,9 +125,9 @@ function updateTickerTime() {
     hours = hours % 12 || 12;
     document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds} ${ampm}`;
 }
-
 setInterval(updateTickerTime, 1000);
 updateTickerTime();
 </script>
+
 </body>
 </html>
