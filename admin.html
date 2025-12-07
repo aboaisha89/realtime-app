@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>صفحة الإدارة</h2>
+<input id="text" placeholder="اكتب شيئاً">
+<button onclick="send()">إرسال</button>
+
+<script>
+const ws = new WebSocket(location.origin.replace(/^http/, "ws"));
+
+function send() {
+    const msg = document.getElementById("text").value;
+    if (msg) ws.send(msg);
+}
+</script>
+</body>
+</html>
